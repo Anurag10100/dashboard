@@ -1,0 +1,5 @@
+{
+  "name": "Event Horizon Analytics",
+  "description": "A React-based replica of a Looker Studio dashboard for Event Management, featuring real-time filtering, cross-filtering, and AI-powered insights using the Gemini API.",
+  "requestFramePermissions": []
+}

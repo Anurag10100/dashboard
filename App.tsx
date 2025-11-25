@@ -1,12 +1,16 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { Project, DelegateLog, Sponsor, DashboardFilters, AiInsight, SponsorStage } from './types';
-import { MASTER_PROJECTS, DELEGATES_DATA, SPONSORS_PIPELINE } from './services/mockData';
+import { Project, DelegateLog, Sponsor, DashboardFilters, AiInsight, SponsorStage, MarketingData, ExpenseCategory } from './types';
+import { MASTER_PROJECTS, DELEGATES_DATA, SPONSORS_PIPELINE, MARKETING_DATA, EXPENSE_CATEGORIES } from './services/mockData';
 import { generateDashboardInsight } from './services/geminiService';
 import { ZoneFilters } from './components/ZoneFilters';
 import { ZoneScorecards } from './components/ZoneScorecards';
 import { ZoneCharts } from './components/ZoneCharts';
 import { ZoneGrid } from './components/ZoneGrid';
+import { ZoneMarketing } from './components/ZoneMarketing';
+import { ZoneBudget } from './components/ZoneBudget';
+import { AlertsPanel } from './components/AlertsPanel';
 import { ProjectDeepDive } from './components/ProjectDeepDive';
+import { ExportMenu } from './components/ExportMenu';
 import { BrainCircuit, Loader2, Wifi } from 'lucide-react';
 
 const App: React.FC = () => {
@@ -14,6 +18,8 @@ const App: React.FC = () => {
   const [projects, setProjects] = useState<Project[]>(MASTER_PROJECTS);
   const [sponsors, setSponsors] = useState<Sponsor[]>(SPONSORS_PIPELINE);
   const [delegates, setDelegates] = useState<DelegateLog[]>(DELEGATES_DATA);
+  const [marketingData] = useState<MarketingData[]>(MARKETING_DATA);
+  const [expenses] = useState<ExpenseCategory[]>(EXPENSE_CATEGORIES);
   const [isLiveMode, setIsLiveMode] = useState(true);
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
 
@@ -69,6 +75,10 @@ const App: React.FC = () => {
   const filteredSponsors = useMemo(() => {
     return sponsors.filter(s => activeProjectIds.has(s.project_id));
   }, [activeProjectIds, sponsors]);
+
+  const filteredMarketingData = useMemo(() => {
+    return marketingData.filter(m => activeProjectIds.has(m.project_id));
+  }, [activeProjectIds, marketingData]);
 
   // --- 4. Calculated Fields for Scorecards ---
   
@@ -182,7 +192,7 @@ const App: React.FC = () => {
         <div className="flex items-center gap-4">
           {/* Live Mode Toggle (Only show on Dashboard) */}
           {!selectedProjectId && (
-            <button 
+            <button
                 onClick={() => setIsLiveMode(!isLiveMode)}
                 className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold transition-all ${isLiveMode ? 'bg-red-100 text-red-600 ring-1 ring-red-200' : 'bg-gray-100 text-gray-500'}`}
             >
@@ -191,8 +201,19 @@ const App: React.FC = () => {
             </button>
           )}
 
+          {/* Export Menu (Only show on Dashboard) */}
           {!selectedProjectId && (
-             <button 
+            <ExportMenu
+              projects={filteredProjects}
+              sponsors={filteredSponsors}
+              delegates={filteredDelegates}
+              marketingData={filteredMarketingData}
+              aiInsight={insight}
+            />
+          )}
+
+          {!selectedProjectId && (
+             <button
                 onClick={handleGenerateInsight}
                 disabled={isAiLoading}
                 className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-lg shadow-md hover:shadow-lg transition-all hover:scale-[1.02] disabled:opacity-70 disabled:cursor-not-allowed"
@@ -250,6 +271,14 @@ const App: React.FC = () => {
             {/* Zone 1: Global Filters */}
             <ZoneFilters filters={filters} setFilters={setFilters} projects={projects} />
 
+            {/* Zone 1.5: Active Alerts */}
+            <AlertsPanel
+            projects={filteredProjects}
+            sponsors={filteredSponsors}
+            delegates={filteredDelegates}
+            marketingData={filteredMarketingData}
+            />
+
             {/* Zone 2: Scorecards */}
             <ZoneScorecards 
             totalRevenue={totalProjectedRevenue} 
@@ -258,11 +287,23 @@ const App: React.FC = () => {
             />
 
             {/* Zone 3: The Big 3 Visuals */}
-            <ZoneCharts 
+            <ZoneCharts
             sponsors={filteredSponsors}
             delegates={filteredDelegates}
             speakerActual={speakerActualTotal}
             speakerTarget={speakerTargetTotal}
+            />
+
+            {/* Zone 3.5: Marketing Performance */}
+            <ZoneMarketing
+            marketingData={filteredMarketingData}
+            projects={filteredProjects}
+            />
+
+            {/* Zone 3.6: Budget & P/L */}
+            <ZoneBudget
+            projects={filteredProjects}
+            expenses={expenses}
             />
 
             {/* Zone 4: Master Grid */}

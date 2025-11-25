@@ -8,6 +8,17 @@ export interface Project {
   revenue_actual: number; // Calculated/Mocked
   speaker_target: number;
   speaker_actual: number;
+  // Budget & P&L
+  budget_total?: number; // Total budget allocated
+  expenses_actual?: number; // Actual expenses incurred
+}
+
+// Budget Breakdown by Category
+export interface ExpenseCategory {
+  project_id: string;
+  category: 'Venue' | 'Catering' | 'Marketing' | 'Speaker Fees' | 'Technology' | 'Staff' | 'Other';
+  amount: number;
+  description?: string;
 }
 
 // Source B: DELEGATES_DATA

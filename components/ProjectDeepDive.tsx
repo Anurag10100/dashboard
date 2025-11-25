@@ -27,6 +27,8 @@ export const ProjectDeepDive: React.FC<ProjectDeepDiveProps> = ({ project, spons
   const [activeTab, setActiveTab] = useState<TabType>('overview');
   const [report, setReport] = useState<DeepDiveReport | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [copySuccess, setCopySuccess] = useState(false);
+  const [campaignNotification, setCampaignNotification] = useState(false);
 
   // Retrieve Marketing Data for this project
   const marketingData: MarketingData | undefined = useMemo(() => {
@@ -71,6 +73,25 @@ export const ProjectDeepDive: React.FC<ProjectDeepDiveProps> = ({ project, spons
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleCopyToClipboard = async () => {
+    if (report?.emailDraft) {
+      try {
+        await navigator.clipboard.writeText(report.emailDraft);
+        setCopySuccess(true);
+        setTimeout(() => setCopySuccess(false), 2000);
+      } catch (err) {
+        console.error('Failed to copy:', err);
+        alert('Failed to copy to clipboard');
+      }
+    }
+  };
+
+  const handleCreateCampaign = () => {
+    setCampaignNotification(true);
+    setTimeout(() => setCampaignNotification(false), 3000);
+    // In a real app, this would open a modal or navigate to campaign creation
   };
 
   return (
@@ -225,7 +246,14 @@ export const ProjectDeepDive: React.FC<ProjectDeepDiveProps> = ({ project, spons
                                 <div className="bg-white border border-gray-200 rounded-lg p-4 text-sm text-gray-600 font-mono whitespace-pre-wrap shadow-inner h-64 overflow-y-auto">
                                     {report.emailDraft}
                                 </div>
-                                <button className="mt-2 text-xs text-indigo-600 font-bold hover:underline">Copy to Clipboard</button>
+                                <button
+                                    onClick={handleCopyToClipboard}
+                                    className={`mt-2 text-xs font-bold transition-all ${
+                                        copySuccess ? 'text-green-600' : 'text-indigo-600 hover:underline'
+                                    }`}
+                                >
+                                    {copySuccess ? '✓ Copied!' : 'Copy to Clipboard'}
+                                </button>
                             </div>
                         </div>
                     )}
@@ -324,9 +352,18 @@ export const ProjectDeepDive: React.FC<ProjectDeepDiveProps> = ({ project, spons
                             </div>
                         ))}
                     </div>
-                    <button className="w-full mt-6 py-2 bg-indigo-50 text-indigo-600 text-sm font-bold rounded-lg hover:bg-indigo-100 transition-colors flex items-center justify-center gap-2">
+                    <button
+                        onClick={handleCreateCampaign}
+                        className="w-full mt-6 py-2 bg-indigo-50 text-indigo-600 text-sm font-bold rounded-lg hover:bg-indigo-100 transition-colors flex items-center justify-center gap-2"
+                    >
                         <Send size={14} /> Create New Campaign
                     </button>
+                    {campaignNotification && (
+                        <div className="mt-3 p-3 bg-green-50 text-green-700 rounded-lg text-sm flex items-center gap-2 animate-in slide-in-from-top">
+                            <CheckCircle size={16} />
+                            <span>Campaign creation feature coming soon! This will integrate with your email platform.</span>
+                        </div>
+                    )}
                </div>
            </div>
         </div>

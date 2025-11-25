@@ -1,4 +1,4 @@
-import { Project, DelegateLog, Sponsor, SponsorStage, MarketingData, Campaign } from '../types';
+import { Project, DelegateLog, Sponsor, SponsorStage, MarketingData, Campaign, ExpenseCategory } from '../types';
 
 // Helper to generate dates relative to today
 const addDays = (date: Date, days: number): string => {
@@ -11,11 +11,11 @@ const TODAY = new Date();
 
 // Source A: MASTER_PROJECTS
 export const MASTER_PROJECTS: Project[] = [
-  { project_id: 'P-001', project_name: 'World Edu Summit', date: '2024-12-12', status: 'On Track', revenue_target: 100000, revenue_actual: 75000, speaker_target: 50, speaker_actual: 45 },
-  { project_id: 'P-002', project_name: 'Future Tech Expo', date: '2024-11-20', status: 'Critical', revenue_target: 250000, revenue_actual: 120000, speaker_target: 100, speaker_actual: 40 },
-  { project_id: 'P-003', project_name: 'Green Energy Forum', date: '2025-01-15', status: 'On Track', revenue_target: 80000, revenue_actual: 30000, speaker_target: 30, speaker_actual: 10 },
-  { project_id: 'P-004', project_name: 'AI Innovators Con', date: '2024-10-30', status: 'Completed', revenue_target: 150000, revenue_actual: 160000, speaker_target: 60, speaker_actual: 60 },
-  { project_id: 'P-005', project_name: 'Global Health Symposium', date: '2024-12-05', status: 'Critical', revenue_target: 120000, revenue_actual: 50000, speaker_target: 45, speaker_actual: 20 },
+  { project_id: 'P-001', project_name: 'World Edu Summit', date: '2024-12-12', status: 'On Track', revenue_target: 100000, revenue_actual: 75000, speaker_target: 50, speaker_actual: 45, budget_total: 85000, expenses_actual: 62000 },
+  { project_id: 'P-002', project_name: 'Future Tech Expo', date: '2024-11-20', status: 'Critical', revenue_target: 250000, revenue_actual: 120000, speaker_target: 100, speaker_actual: 40, budget_total: 200000, expenses_actual: 145000 },
+  { project_id: 'P-003', project_name: 'Green Energy Forum', date: '2025-01-15', status: 'On Track', revenue_target: 80000, revenue_actual: 30000, speaker_target: 30, speaker_actual: 10, budget_total: 65000, expenses_actual: 28000 },
+  { project_id: 'P-004', project_name: 'AI Innovators Con', date: '2024-10-30', status: 'Completed', revenue_target: 150000, revenue_actual: 160000, speaker_target: 60, speaker_actual: 60, budget_total: 120000, expenses_actual: 118000 },
+  { project_id: 'P-005', project_name: 'Global Health Symposium', date: '2024-12-05', status: 'Critical', revenue_target: 120000, revenue_actual: 50000, speaker_target: 45, speaker_actual: 20, budget_total: 95000, expenses_actual: 72000 },
 ];
 
 // Source B: DELEGATES_DATA (Time series generation)
@@ -88,3 +88,41 @@ const generateMarketingData = (): MarketingData[] => {
 };
 
 export const MARKETING_DATA: MarketingData[] = generateMarketingData();
+
+// Source E: EXPENSE_CATEGORIES
+export const EXPENSE_CATEGORIES: ExpenseCategory[] = [
+  // P-001: World Edu Summit
+  { project_id: 'P-001', category: 'Venue', amount: 25000 },
+  { project_id: 'P-001', category: 'Catering', amount: 15000 },
+  { project_id: 'P-001', category: 'Marketing', amount: 8000 },
+  { project_id: 'P-001', category: 'Speaker Fees', amount: 10000 },
+  { project_id: 'P-001', category: 'Technology', amount: 4000 },
+
+  // P-002: Future Tech Expo
+  { project_id: 'P-002', category: 'Venue', amount: 60000 },
+  { project_id: 'P-002', category: 'Catering', amount: 35000 },
+  { project_id: 'P-002', category: 'Marketing', amount: 20000 },
+  { project_id: 'P-002', category: 'Speaker Fees', amount: 20000 },
+  { project_id: 'P-002', category: 'Technology', amount: 10000 },
+
+  // P-003: Green Energy Forum
+  { project_id: 'P-003', category: 'Venue', amount: 12000 },
+  { project_id: 'P-003', category: 'Catering', amount: 8000 },
+  { project_id: 'P-003', category: 'Marketing', amount: 4000 },
+  { project_id: 'P-003', category: 'Speaker Fees', amount: 3000 },
+  { project_id: 'P-003', category: 'Technology', amount: 1000 },
+
+  // P-004: AI Innovators Con
+  { project_id: 'P-004', category: 'Venue', amount: 45000 },
+  { project_id: 'P-004', category: 'Catering', amount: 30000 },
+  { project_id: 'P-004', category: 'Marketing', amount: 18000 },
+  { project_id: 'P-004', category: 'Speaker Fees', amount: 15000 },
+  { project_id: 'P-004', category: 'Technology', amount: 10000 },
+
+  // P-005: Global Health Symposium
+  { project_id: 'P-005', category: 'Venue', amount: 28000 },
+  { project_id: 'P-005', category: 'Catering', amount: 18000 },
+  { project_id: 'P-005', category: 'Marketing', amount: 12000 },
+  { project_id: 'P-005', category: 'Speaker Fees', amount: 10000 },
+  { project_id: 'P-005', category: 'Technology', amount: 4000 },
+];

@@ -2,6 +2,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { Project, DelegateLog, Sponsor, DashboardFilters, AiInsight, SponsorStage, MarketingData, ExpenseCategory } from './types';
 import { MASTER_PROJECTS, DELEGATES_DATA, SPONSORS_PIPELINE, MARKETING_DATA, EXPENSE_CATEGORIES } from './services/mockData';
 import { generateDashboardInsight } from './services/geminiService';
+import { fetchAllData, isSheetsConfigured } from './services/googleSheetsService';
 import { ZoneFilters } from './components/ZoneFilters';
 import { ZoneScorecards } from './components/ZoneScorecards';
 import { ZoneCharts } from './components/ZoneCharts';
@@ -15,11 +16,13 @@ import { BrainCircuit, Loader2, Wifi } from 'lucide-react';
 
 const App: React.FC = () => {
   // --- 1. State Management ---
-  const [projects, setProjects] = useState<Project[]>(MASTER_PROJECTS);
-  const [sponsors, setSponsors] = useState<Sponsor[]>(SPONSORS_PIPELINE);
-  const [delegates, setDelegates] = useState<DelegateLog[]>(DELEGATES_DATA);
-  const [marketingData] = useState<MarketingData[]>(MARKETING_DATA);
-  const [expenses] = useState<ExpenseCategory[]>(EXPENSE_CATEGORIES);
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [sponsors, setSponsors] = useState<Sponsor[]>([]);
+  const [delegates, setDelegates] = useState<DelegateLog[]>([]);
+  const [marketingData, setMarketingData] = useState<MarketingData[]>([]);
+  const [expenses, setExpenses] = useState<ExpenseCategory[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [dataSource, setDataSource] = useState<'sheets' | 'mock'>('mock');
   const [isLiveMode, setIsLiveMode] = useState(true);
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
 
@@ -34,15 +37,74 @@ const App: React.FC = () => {
   const [isAiLoading, setIsAiLoading] = useState(false);
   const [aiError, setAiError] = useState<string | null>(null);
 
-  // --- 2. Live Data Simulation Effect ---
+  // --- 2. Load Data from Google Sheets or Mock Data ---
   useEffect(() => {
-    if (!isLiveMode) return;
+    const loadData = async () => {
+      setIsLoading(true);
+
+      if (isSheetsConfigured()) {
+        // Try to load from Google Sheets
+        const result = await fetchAllData();
+
+        if (result.success && result.projects.length > 0) {
+          setProjects(result.projects);
+          setSponsors(result.sponsors);
+          setDelegates(result.delegates);
+          setMarketingData(result.marketingData);
+          setExpenses(result.expenses);
+          setDataSource('sheets');
+        } else {
+          // Fallback to mock data
+          setProjects(MASTER_PROJECTS);
+          setSponsors(SPONSORS_PIPELINE);
+          setDelegates(DELEGATES_DATA);
+          setMarketingData(MARKETING_DATA);
+          setExpenses(EXPENSE_CATEGORIES);
+          setDataSource('mock');
+        }
+      } else {
+        // Use mock data if Google Sheets not configured
+        setProjects(MASTER_PROJECTS);
+        setSponsors(SPONSORS_PIPELINE);
+        setDelegates(DELEGATES_DATA);
+        setMarketingData(MARKETING_DATA);
+        setExpenses(EXPENSE_CATEGORIES);
+        setDataSource('mock');
+      }
+
+      setIsLoading(false);
+    };
+
+    loadData();
+  }, []); // Load once on mount
+
+  // --- 2.5. Auto-refresh from Google Sheets when Live Mode is on ---
+  useEffect(() => {
+    if (!isLiveMode || dataSource !== 'sheets') return;
+
+    const refreshInterval = setInterval(async () => {
+      const result = await fetchAllData();
+      if (result.success && result.projects.length > 0) {
+        setProjects(result.projects);
+        setSponsors(result.sponsors);
+        setDelegates(result.delegates);
+        setMarketingData(result.marketingData);
+        setExpenses(result.expenses);
+      }
+    }, 5 * 60 * 1000); // Refresh every 5 minutes
+
+    return () => clearInterval(refreshInterval);
+  }, [isLiveMode, dataSource]);
+
+  // --- 3. Live Data Simulation Effect (only for mock data demo) ---
+  useEffect(() => {
+    if (!isLiveMode || dataSource !== 'mock' || projects.length === 0) return;
 
     const interval = setInterval(() => {
       // Simulate a new delegate registering
       const randomProject = projects[Math.floor(Math.random() * projects.length)];
       const categories: ('Government' | 'Industry' | 'Student')[] = ['Government', 'Industry', 'Student'];
-      
+
       const newLog: DelegateLog = {
         project_id: randomProject.project_id,
         date_logged: new Date().toISOString().split('T')[0], // Today
@@ -54,7 +116,7 @@ const App: React.FC = () => {
     }, 3000); // Add new data every 3 seconds
 
     return () => clearInterval(interval);
-  }, [isLiveMode, projects]);
+  }, [isLiveMode, dataSource, projects]);
 
   // --- 3. Filtering Logic ---
   const filteredProjects = useMemo(() => {
@@ -177,16 +239,36 @@ const App: React.FC = () => {
     };
   }, [selectedProjectId, projects, sponsors, delegates]);
 
+  // Loading screen
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 size={48} className="animate-spin text-indigo-600 mx-auto mb-4" />
+          <h2 className="text-xl font-bold text-gray-900 mb-2">Loading Dashboard...</h2>
+          <p className="text-gray-600">
+            {isSheetsConfigured() ? 'Fetching data from Google Sheets' : 'Loading mock data'}
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 pb-20">
-      
+
       {/* Header / Navbar */}
       <header className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between sticky top-0 z-40">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
           <div className="w-8 h-8 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center text-white font-bold">
             E
           </div>
-          <h1 className="text-xl font-bold tracking-tight text-gray-900">Event Horizon Analytics</h1>
+          <div>
+            <h1 className="text-xl font-bold tracking-tight text-gray-900">Event Horizon Analytics</h1>
+            <p className="text-xs text-gray-500">
+              {dataSource === 'sheets' ? '📊 Data from Google Sheets' : '🔬 Demo Mode (Mock Data)'}
+            </p>
+          </div>
         </div>
         
         <div className="flex items-center gap-4">

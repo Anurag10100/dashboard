@@ -1,12 +1,12 @@
 import React, { useState, useMemo } from 'react';
-import { Project, Sponsor, DelegateLog, SponsorStage, MarketingData } from '../types';
+import { Project, Sponsor, DelegateLog, MarketingData } from '../types';
 import { MARKETING_DATA } from '../services/mockData'; // Import mock marketing data
 import { generateProjectDeepDive } from '../services/geminiService';
 import { 
   ArrowLeft, BrainCircuit, Calendar, CheckCircle, AlertTriangle, Mail, Loader2, 
   Megaphone, MousePointer, Share2, BarChart2, LayoutDashboard, Send
 } from 'lucide-react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, AreaChart, Area } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area, Line } from 'recharts';
 
 interface ProjectDeepDiveProps {
   project: Project;
